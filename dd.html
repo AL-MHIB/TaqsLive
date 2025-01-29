@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>طقسنا - نظام متكامل للتنبؤات الجوية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* أنماط CSS مخصصة */
+        :root {
+            --primary-color: #2196F3;
+            --secondary-color: #1a237e;
+            --background-gradient: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        body {
+            background: var(--background-gradient);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            width: 100%;
+            max-width: 800px;
+            border-radius: 25px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+            padding: 35px;
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+
+        .container:hover {
+            transform: translateY(-5px);
+        }
+
+        .search-box {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 35px;
+            position: relative;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 18px 30px;
+            border: 2px solid rgba(224, 224, 224, 0.3);
+            border-radius: 15px;
+            font-size: 17px;
+            background: rgba(255, 255, 255, 0.9);
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(33, 150, 243, 0.15);
+        }
+
+        .search-box button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 18px 35px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+
+        .search-box button:hover {
+            background: var(--secondary-color);
+            transform: scale(1.05);
+        }
+
+        .current-weather {
+            text-align: center;
+            margin-bottom: 45px;
+            position: relative;
+        }
+
+        .location {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--secondary-color);
+            margin-bottom: 20px;
+            letter-spacing: -0.5px;
+        }
+
+        .temp {
+            font-size: 84px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 25px 0;
+            position: relative;
+            display: inline-block;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .temp::after {
+            content: "°C";
+            font-size: 28px;
+            position: absolute;
+            top: 15px;
+            right: -35px;
+            color: #666;
+        }
+
+        .weather-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 25px;
+            margin-top: 35px;
+        }
+
+        .weather-card {
+            background: rgba(248, 249, 250, 0.9);
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid rgba(224, 224, 224, 0.4);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .weather-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .weather-card h3 {
+            color: #555;
+            margin-bottom: 15px;
+            font-size: 17px;
+            font-weight: 500;
+        }
+
+        .weather-icon {
+            font-size: 45px;
+            margin: 20px 0;
+            filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.1));
+        }
+
+        .forecast {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 20px;
+            margin-top: 35px;
+        }
+
+        .forecast-day {
+            background: rgba(248, 249, 250, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(224, 224, 224, 0.4);
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+
+        .forecast-day:hover {
+            transform: scale(1.05);
+        }
+
+        .forecast-day div:first-child {
+            font-weight: 700;
+            color: var(--secondary-color);
+            margin-bottom: 15px;
+            font-size: 17px;
+        }
+
+        .forecast-day .weather-icon {
+            font-size: 35px;
+            margin: 15px 0;
+        }
+
+        .loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            border-radius: 25px;
+            z-index: 10;
+        }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 25px;
+                border-radius: 20px;
+            }
+
+            .temp {
+                font-size: 64px;
+            }
+
+            .temp::after {
+                font-size: 22px;
+                right: -25px;
+            }
+
+            .search-box input {
+                padding: 15px 25px;
+            }
+
+            .weather-info {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="loading">
+            <div class="loader"></div>
+        </div>
+
+        <div class="search-box">
+            <input type="text" placeholder="أدخل اسم المدينة..." id="cityInput">
+            <button onclick="showWeather()">بحث</button>
+        </div>
+
+        <div class="current-weather">
+            <div id="location" class="location">الرياض, السعودية</div>
+            <div class="temp">28°C</div>
+            
+            <div class="weather-info">
+                <div class="weather-card">
+                    <div class="weather-icon" id="condition-icon">☀️</div>
+                    <div id="condition">مشمس</div>
+                </div>
+                
+                <div class="weather-card">
+                    <h3>الرطوبة</h3>
+                    <div id="humidity">45%</div>
+                </div>
+                
+                <div class="weather-card">
+                    <h3>سرعة الرياح</h3>
+                    <div id="wind">18 كم/س</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="forecast" id="forecast">
+            <div class="forecast-day">
+                <div>الاثنين</div>
+                <div class="weather-icon">🌤️</div>
+                <div>32° / 26°</div>
+            </div>
+            <!-- يمكن إضافة المزيد من أيام التوقعات هنا -->
+        </div>
+    </div>
+
+    <script>
+        const API_KEY = '6cb53ad97d46d7174b9b70fd15e53e36';
+
+        async function showWeather() {
+            const loader = document.querySelector('.loading');
+            try {
+                loader.style.display = 'flex';
+                const city = document.getElementById('cityInput').value;
+                
+                // جلب بيانات الطقس الحالية
+                const currentResponse = await fetch(
+                    `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${API_KEY}&lang=ar`
+                );
+                
+                const currentData = await currentResponse.json();
+                
+                // تحديث الواجهة
+                document.getElementById('location').textContent = `${currentData.name}, ${currentData.sys.country}`;
+                document.querySelector('.temp').textContent = `${Math.round(currentData.main.temp)}`;
+                document.getElementById('condition').textContent = currentData.weather[0].description;
+                document.getElementById('humidity').textContent = `${currentData.main.humidity}%`;
+                document.getElementById('wind').textContent = `${Math.round(currentData.wind.speed * 3.6)} كم/س`;
+                document.getElementById('condition-icon').textContent = getWeatherIcon(currentData.weather[0].icon);
+
+                // جلب بيانات التوقعات
+                const forecastResponse = await fetch(
+                    `https://api.openweathermap.org/data/2.5/forecast?q=${city}&units=metric&appid=${API_KEY}&lang=ar`
+                );
+                
+                const forecastData = await forecastResponse.json();
+                updateForecast(forecastData);
+                
+            } catch (error) {
+                alert('عذرًا، حدث خطأ في جلب البيانات!');
+                console.error(error);
+            } finally {
+                loader.style.display = 'none';
+            }
+        }
+
+        function updateForecast(data) {
+            const forecastElement = document.getElementById('forecast');
+            const dailyForecast = {};
+            
+            data.list.forEach(item => {
+                const date = new Date(item.dt * 1000);
+                const day = date.toLocaleDateString('ar-SA', { weekday: 'long' });
+                
+                if (!dailyForecast[day]) {
+                    dailyForecast[day] = {
+                        max: item.main.temp_max,
+                        min: item.main.temp_min,
+                        icon: item.weather[0].icon
+                    };
+                } else {
+                    dailyForecast[day].max = Math.max(dailyForecast[day].max, item.main.temp_max);
+                    dailyForecast[day].min = Math.min(dailyForecast[day].min, item.main.temp_min);
+                }
+            });
+
+            forecastElement.innerHTML = Object.keys(dailyForecast)
+                .slice(0, 3)
+                .map(day => `
+                    <div class="forecast-day">
+                        <div>${day}</div>
+                        <div class="weather-icon">${getWeatherIcon(dailyForecast[day].icon)}</div>
+                        <div>${Math.round(dailyForecast[day].max)}° / ${Math.round(dailyForecast[day].min)}°</div>
+                    </div>
+                `).join('');
+        }
+
+        function getWeatherIcon(iconCode) {
+            const iconMap = {
+                '01d': '☀️', '01n': '🌙',
+                '02d': '🌤️', '02n': '🌤️',
+                '03d': '⛅', '03n': '⛅',
+                '04d': '☁️', '04n': '☁️',
+                '09d': '🌧️', '09n': '🌧️',
+                '10d': '🌦️', '10n': '🌦️',
+                '11d': '⛈️', '11n': '⛈️',
+                '13d': '❄️', '13n': '❄️',
+                '50d': '🌫️', '50n': '🌫️'
+            };
+            return iconMap[iconCode] || '🌤️';
+        }
+
+        // تحميل البيانات الأولية
+        window.onload = () => {
+            document.getElementById('cityInput').value = 'الرياض';
+            showWeather();
+        };
+    </script>
+</body>
+</html>
